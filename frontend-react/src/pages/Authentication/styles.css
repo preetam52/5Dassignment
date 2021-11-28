@@ -8,11 +8,47 @@
     background: #001b31;
 }
 
+
 .auth-container {
     background: white;
     margin-top: 20%;
     height: -webkit-fill-available;
     border-top-left-radius: 30px;
     display: flex;
+    justify-content: center;
+}
+
+.sub-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+}
+
+.heading {
+    text-align: center;
+}
+
+.heading > h1 {
+    margin-bottom: 5px !important;
+}
+
+.auth-btn {
+    background: #001b31 !important;
+    color: white !important;
+    border-radius: 18px !important;
+    margin: 10px 0 !important;
+    width: 120px !important;
+    padding: 5px !important;
+    font-size: 18px !important;
+    font-weight: bold !important;
+}
+
+.inp-icon {
+    border-bottom: 1px solid rgb(148 148 148);
+    margin: 0px 8px;
+    display: flex;
+    align-items: end;
+    padding: 3px 10px;
     justify-content: center;
 }

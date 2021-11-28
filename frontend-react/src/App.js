@@ -16,7 +16,7 @@ class App extends Component {
         
       <BrowserRouter>
         <Switch>
-          {routes.map((route) => route.redirectTo ? <Redirect key={route.path} to={route.redirectTo}/> : <Route key={route.path} exact={true} path={route.path} component={route.component}/>)}
+          {routes.map((route) => route.redirectTo ? <Redirect key={route.path} to={route.redirectTo}/> : <Route key={route.path}  path={route.path} component={route.component}/>)}
         </Switch>
       </BrowserRouter>
       </div>
