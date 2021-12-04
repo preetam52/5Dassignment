@@ -4,27 +4,59 @@ import { Button, Box, Grid, Container, TextField, InputLabel, InputAdornment, Ic
 import { Visibility, VisibilityOff } from '@mui/icons-material'
 
 import { formFields } from './config'
+import { signup } from '../../../services/user.service';
+import Swal from 'sweetalert2'
 
 export default function Signup(props) {
 
-    const [values, setValues] = React.useState({
-        amount: '',
-        password: '',
-        weight: '',
-        weightRange: '',
-        showPassword: false,
+    const schema = {};
+    formFields.forEach((item) => {
+        schema[item.key] = ''
+    })
+
+    const [users, setUsers] = React.useState({
+        ...schema
     });
 
-    const signUp = () => {
-        props.history.push('/auth/signin')
+    const signUpClicked = async (event) => {
+        event.preventDefault();
+        try {
+            const response = await (await signup(users)).data
+            Swal.fire({
+                icon: 'success',
+                title: response.message,
+                showConfirmButton: false,
+                timer: 1500
+            })
+            props.history.push('/auth/signin')
+        } catch (error) {
+            const err = {...error}
+            const {message} = err?.response?.data
+            console.log(err);
+            Swal.fire({
+                icon: 'error',
+                title: message,
+                showConfirmButton: false,
+                timer: 3000
+            })
+        }
+        
     }
 
     const handleClickShowPassword = () => {
-        setValues({
-            ...values,
-            showPassword: !values.showPassword,
-        });
+        // setUsers({
+        //     ...users,
+        //     showPassword: !users.showPassword,
+        // });
     };
+
+    const onChangeHandler = (event) => {
+        const { name, value } = event.target;
+        setUsers({
+            ...users,
+            [name]: value
+        })
+    }
 
     const handleMouseDownPassword = (event) => {
         event.preventDefault();
@@ -43,7 +75,7 @@ export default function Signup(props) {
                         <div style={{ display: 'flex' }}>
                             {item?.icon && <div className='inp-icon'>{item.icon}</div>}
 
-                            <TextField required={true} autoComplete={'abc'} style={{ width: item.icon ? 250 : 100 }} type={item.type} id="input-with-sx" variant="standard"
+                            <TextField onChange={onChangeHandler} name={item.key} required={true} autoComplete={'abc'} style={{ width: item.icon ? 250 : 100 }} type={item.type} id="input-with-sx" variant="standard"
                                 InputProps={item.type === 'password' && {
                                     endAdornment: (
                                         <InputAdornment position="end">
@@ -53,7 +85,7 @@ export default function Signup(props) {
                                                 onMouseDown={handleMouseDownPassword}
                                                 edge="end"
                                             >
-                                                {values.showPassword ? <VisibilityOff /> : <Visibility />}
+                                                {users.showPassword ? <VisibilityOff /> : <Visibility />}
                                             </IconButton>
                                         </InputAdornment>
                                     )
@@ -81,16 +113,17 @@ export default function Signup(props) {
     return (
         <div className='sub-container'>
             <div className='heading'>
+                {console.log(users)}
                 <h1>
                     Sign Up
                 </h1>
                 <span>To be a member</span>
             </div>
 
-            <form>
+            <form onSubmit={signUpClicked}>
                 {formUiBuilder()}
-                <div style={{display: 'flex', justifyContent: 'center'}}>
-                    <Button type='submit' onClick={signUp} className='auth-btn'>Submit</Button>
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <Button type='submit' className='auth-btn'>Submit</Button>
                 </div>
             </form>
             <div>
