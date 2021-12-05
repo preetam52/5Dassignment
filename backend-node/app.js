@@ -19,6 +19,8 @@ app.use(function(req, res, next) {
     next();
   })
 app.use(express.json())
+app.use(express.static('public'));
+
 
 app.use('/api', userRouter)
 app.use('/api', momentRouter)

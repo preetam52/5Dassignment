@@ -21,10 +21,10 @@ export default function Signup(props) {
     const signUpClicked = async (event) => {
         event.preventDefault();
         try {
-            const response = await (await signup(users)).data
+            const response = await signup(users)
             Swal.fire({
                 icon: 'success',
-                title: response.message,
+                title: response.data.message,
                 showConfirmButton: false,
                 timer: 1500
             })
@@ -75,7 +75,7 @@ export default function Signup(props) {
                         <div style={{ display: 'flex' }}>
                             {item?.icon && <div className='inp-icon'>{item.icon}</div>}
 
-                            <TextField onChange={onChangeHandler} name={item.key} required={true} autoComplete={'abc'} style={{ width: item.icon ? 250 : 100 }} type={item.type} id="input-with-sx" variant="standard"
+                            <TextField onChange={onChangeHandler} name={item.key} required={item.required} autoComplete={`new-${item.key}`} style={{ width: item.icon ? 250 : 100 }} type={item.type} id="input-with-sx" variant="standard"
                                 InputProps={item.type === 'password' && {
                                     endAdornment: (
                                         <InputAdornment position="end">
@@ -90,6 +90,7 @@ export default function Signup(props) {
                                         </InputAdornment>
                                     )
                                 }}
+                                
                             />
                         </div>
                     </div>

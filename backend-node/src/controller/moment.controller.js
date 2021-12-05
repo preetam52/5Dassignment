@@ -6,7 +6,7 @@ const getMoments = async (req, res) => {
     try {
         const { page, limit} = req.query;
         const { userid } = req.headers;
-        const moments = await momentModel.paginate({userid}, {page, limit, lean: true})
+        const moments = await momentModel.paginate({userId: userid}, {page, limit, lean: true})
 
         return res.status(200).send({moments})
         
@@ -18,23 +18,25 @@ const getMoments = async (req, res) => {
 
 const createMoment = async (req, res) => {
 
-    const { moment } = req.body;
+    const moment = JSON.parse(JSON.stringify(req.body))
+    console.log(moment);
     try {
         moment.userId = new mongoose.Types.ObjectId(moment.userId)
         const userFromdb = await userModel.findOne({ _id: moment.userId });
 
-        if(!userFromdb) return res.status(400).send({ error: `No moment found with this momentId: ${moment.userId}`});
-        
+        if(!userFromdb) return res.status(400).send({ message: `No moment found with this momentId: ${moment.userId}`});
+        moment.image = `${req.file.filename}`
+        moment.tags = [moment.tags]
         const momentToSaved = new momentModel(moment);
         const momentSaved = await momentToSaved.save();
 
         if(momentSaved) 
         return res.status(200).send({ momentSaved })
         else
-        return res.status(400).send({ error: 'Something went wrong' })
+        return res.status(400).send({ message: 'Something went wrong' })
 
     } catch (error) {
-        res.status(400).send({ error: error.message })
+        res.status(400).send({ message: error.message })
 
     }
 }
@@ -62,10 +64,10 @@ const deleteMoment = async (req, res) => {
         const { momentId } = req.body;
         const isDeleted = await momentModel.findOneAndDelete({_id: momentId})
 console.log(isDeleted);
-        if(!isDeleted) return res.status(400).send({error: `No moment found with this momentId: ${momentId}`});
+        if(!isDeleted) return res.status(400).send({message: `No moment found with this momentId: ${momentId}`});
         else return res.status(200).send({message: `Moment deleted with this momentId: ${momentId}`});
     } catch (error) {
-        return res.status(400).send({ error: error.message })
+        return res.status(400).send({ message: error.message })
 
     }
 }

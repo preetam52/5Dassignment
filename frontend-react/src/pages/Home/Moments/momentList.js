@@ -8,59 +8,76 @@ import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import TableSortLabel from '@mui/material/TableSortLabel';
+import { deleteMoment, getMoments } from '../../../services/moment.service';
+import { Chip, IconButton } from '@mui/material';
+import { DeleteOutline, EditOutlined } from '@mui/icons-material'
+import { base_url } from '../../../apis/endPoints';
+import Swal from 'sweetalert2'
 
-const columns = [
-    { id: 'name', label: 'Name', minWidth: 170 },
-    { id: 'code', label: 'ISO\u00a0Code', minWidth: 100 },
-    {
-        id: 'population',
-        label: 'Population',
-        minWidth: 170,
-        align: 'right',
-        format: (value) => value.toLocaleString('en-US'),
-    },
-    {
-        id: 'size',
-        label: 'Size\u00a0(km\u00b2)',
-        minWidth: 170,
-        align: 'right',
-        format: (value) => value.toLocaleString('en-US'),
-    },
-    {
-        id: 'density',
-        label: 'Density',
-        minWidth: 170,
-        align: 'right',
-        format: (value) => value.toFixed(2),
-    },
-];
 
-function createData(name, code, population, size) {
-    const density = population / size;
-    return { name, code, population, size, density };
-}
 
-const rows = [
-    createData('India', 'IN', 1324171354, 3287263),
-    createData('China', 'CN', 1403500365, 9596961),
-    createData('Italy', 'IT', 60483973, 301340),
-    createData('United States', 'US', 327167434, 9833520),
-    createData('Canada', 'CA', 37602103, 9984670),
-    createData('Australia', 'AU', 25475400, 7692024),
-    createData('Germany', 'DE', 83019200, 357578),
-    createData('Ireland', 'IE', 4857000, 70273),
-    createData('Mexico', 'MX', 126577691, 1972550),
-    createData('Japan', 'JP', 126317000, 377973),
-    createData('France', 'FR', 67022000, 640679),
-    createData('United Kingdom', 'GB', 67545757, 242495),
-    createData('Russia', 'RU', 146793744, 17098246),
-    createData('Nigeria', 'NG', 200962417, 923768),
-    createData('Brazil', 'BR', 210147125, 8515767),
-];
 
-export default function StickyHeadTable() {
+export default function StickyHeadTable(props) {
+    const columns = [
+        { id: 'srNo', label: 'Sr.No', minWidth: 170 },
+        {
+            id: 'image',
+            label: 'Image',
+            minWidth: 100,
+            format: (value) => <img style={{ width: 40, height: 40, borderRadius: 100 }} src={`${base_url}/${value}`} />,
+        },
+        {
+            id: 'title',
+            label: 'Title',
+            minWidth: 170,
+            align: 'left',
+    
+        },
+        {
+            id: 'tags',
+            label: 'Tags',
+            minWidth: 170,
+            align: 'left',
+            format: (value) => value?.length ? value.map((e, i) => <Chip label={e} />) : [],
+    
+        },
+        {
+            id: 'action',
+            label: 'Action',
+            minWidth: 170,
+            align: 'center',
+            format: (value) => <div>
+                <IconButton aria-label="delete" size="small">
+                    <EditOutlined fontSize="inherit" />
+                </IconButton>
+                <IconButton onClick={() => deleteMomentClicked(value)} aria-label="delete" size="small">
+                    <DeleteOutline fontSize="inherit" />
+                </IconButton></div>
+        },
+    ];
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(10);
+    const [rows, setRows] = React.useState([])
+
+    React.useEffect(() => {
+        getAllMoments()
+        return () => {
+
+        }
+    }, [page])
+
+    const getAllMoments = async () => {
+        const userId = sessionStorage.getItem('userId');
+        console.log(userId);
+        if (userId) {
+            const momentsFromdb = await getMoments(userId, page, rowsPerPage);
+            setRows(momentsFromdb.map((e, i) => createData(i + 1, e.image, e.title, e.tags, e._id)))
+        }
+    }
+
+    const createData = (srNo, image, title, tags, action) => {
+        return { srNo, image, title, tags, action };
+    }
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -71,19 +88,57 @@ export default function StickyHeadTable() {
         setPage(0);
     };
 
+    const deleteMomentClicked = async (momentId) => {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+          }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const response = await deleteMoment(momentId);
+                    getAllMoments()
+                    Swal.fire({
+                        icon: 'success',
+                        title: response.data.message,
+                        showConfirmButton: false,
+                        timer: 1500
+                    })
+                } catch (error) {
+                    const err = { ...error }
+                    const message = err?.response?.data?.message
+                    Swal.fire({
+                        icon: 'error',
+                        title: message,
+                        showConfirmButton: false,
+                        timer: 3000
+                    })
+                }
+            }
+          })
+        
+    }
+
     return (
-        <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-            <TableContainer sx={{ maxHeight: 440 }}>
-                <Table stickyHeader aria-label="sticky table">
-                    <TableHead>
-                        <TableRow>
-                            {columns.map((column) => (
-                                <TableCell
-                                    key={column.id}
-                                    align={column.align}
-                                    style={{ minWidth: column.minWidth }}
-                                >
-                                    {/* <TableSortLabel
+        <>
+            <h2>Moments</h2>
+
+            <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+                <TableContainer sx={{ maxHeight: 440 }}>
+                    <Table stickyHeader aria-label="sticky table">
+                        <TableHead>
+                            <TableRow>
+                                {columns.map((column) => (
+                                    <TableCell
+                                        key={column.id}
+                                        align={column.align}
+                                        style={{ minWidth: column.minWidth }}
+                                    >
+                                        {/* <TableSortLabel
                                         // active={orderBy === column.id}
                                         // direction={orderBy === column.id ? order : 'asc'}
                                         onClick={createSortHandler(column.id)}
@@ -96,41 +151,43 @@ export default function StickyHeadTable() {
                                         ) : null}
                                     </TableSortLabel> */}
 
-                                </TableCell>
-                            ))}
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {rows
-                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                            .map((row) => {
-                                return (
-                                    <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
-                                        {columns.map((column) => {
-                                            const value = row[column.id];
-                                            return (
-                                                <TableCell key={column.id} align={column.align}>
-                                                    {column.format && typeof value === 'number'
-                                                        ? column.format(value)
-                                                        : value}
-                                                </TableCell>
-                                            );
-                                        })}
-                                    </TableRow>
-                                );
-                            })}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-            <TablePagination
-                rowsPerPageOptions={[10, 25, 100]}
-                component="div"
-                count={rows.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-            />
-        </Paper>
+                                    </TableCell>
+                                ))}
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {rows
+                                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                .map((row) => {
+                                    return (
+                                        <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
+                                            {columns.map((column) => {
+                                                const value = row[column.id];
+                                                return (
+                                                    <TableCell key={column.id} align={column.align}>
+                                                        {console.log("=====>", column)}
+                                                        {
+                                                            column.format ? column.id === 'action' ? column.format( row[column.id]) : column.format(value) : value
+                                                        }
+                                                    </TableCell>
+                                                );
+                                            })}
+                                        </TableRow>
+                                    );
+                                })}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+                <TablePagination
+                    rowsPerPageOptions={[10, 25, 100]}
+                    component="div"
+                    count={rows.length}
+                    rowsPerPage={rowsPerPage}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                />
+            </Paper>
+        </>
     );
 }

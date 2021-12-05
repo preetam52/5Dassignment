@@ -6,10 +6,10 @@ console.log(req.headers);
         page: Joi.string().required(),
         limit: Joi.string().required()
     })
-    const userId = Joi.string().min(24).max(24).required();
+    const userid = Joi.string().min(24).max(24).required();
 
     let error = schema.validate(req.query).error
-    let error1 = userId.validate(req.headers.userid).error
+    let error1 = userid.validate(req.headers.userid).error
 
     if (error || error1) {
         error = error ? error : error1
@@ -24,9 +24,9 @@ const createMomentValidation = (req, res, next) => {
     const schema = Joi.object({
         moment: Joi.object().keys({
             userId: Joi.string().min(24).max(24).required(),
-            tags: Joi.array().items(Joi.string()),
+            tags: Joi.string(),
             title: Joi.string().required(),
-            image: Joi.string().required()
+            image: Joi.array().items(Joi.object().keys({path: Joi.string()})).required()
         })
 
     })

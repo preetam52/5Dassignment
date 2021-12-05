@@ -10,7 +10,7 @@ const signup = async (req, res) => {
         const userToSaved = new userModel(user);
         const userSaved = await userToSaved.save();
         if(userSaved)  
-        return res.status(200).send({ message: 'Successfully signed up' })
+        return res.status(200).send({ message: 'Successfully signed up', userId: userSaved._id })
         else
         return res.status(400).send({ message: 'Something went wrong' })
 
@@ -24,7 +24,7 @@ const signin = async (req, res) => {
     try {
         const {credentials} = req.body
         const userFromDb = await userModel.findOne({ email: credentials.email });
-        if(!userFromDb) return res.status(400).send({ error: `No user found with this email: ${credentials.email}`});
+        if(!userFromDb) return res.status(400).send({ message: `No user found with this email: ${credentials.email}`});
         const isValidPassword = await bcrypt.compare(credentials.password, userFromDb.password);
         if(isValidPassword)  
         return res.status(200).send({ userId: userFromDb._id, message: 'User logged in successfully' })
@@ -33,7 +33,7 @@ const signin = async (req, res) => {
 
 
     } catch (error) {
-        return res.status(400).send({ message: error })
+        return res.status(400).send({ message: error.message })
     }
 }
 

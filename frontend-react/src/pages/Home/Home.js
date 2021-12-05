@@ -15,14 +15,17 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { Route, Switch } from 'react-router-dom';
+import { Route, Switch, Redirect } from 'react-router-dom';
 import MomentList from './Moments/momentList';
+import AddMoments from './Moments/addMoments';
 
 
 const homeRoutes = [
     // {path: "/", redirectTo: "/auth/signup"},
-    {path: "/moments", component: MomentList},
-    {path: "/addMoment", component: MomentList}
+    {path: "/moments", component: MomentList, label: 'Moment List'},
+    {path: "/addMoment", component: AddMoments, label: 'Add new moment'},
+    {path:'/home', redirectTo: sessionStorage.getItem('userId') ? '/home/moments' : '/auth'},
+
 ]
 const drawerWidth = 240;
 
@@ -81,6 +84,7 @@ export default function PersistentDrawerLeft(props) {
 
     return (
         <Box sx={{ display: 'flex' }}>
+            {console.log(props)}
             <CssBaseline />
             <AppBar position="fixed" open={open}>
                 <Toolbar>
@@ -128,12 +132,12 @@ export default function PersistentDrawerLeft(props) {
                             <Typography style={{color: 'white'}}>Moments</Typography>
                         </AccordionSummary>
                         <AccordionDetails>
-                        <ListItem >
-                            <ListItemText primary={'Moment List'} />
+                        {homeRoutes.filter(e => e.label).map((e,i) => 
+                        <ListItem onClick={() => props.history.push('/home'+e.path)} style={{cursor: 'pointer'}} >
+                            {<span style={{height: 8, width: 8, background: props.location.pathname === `/home${e.path}` ? '#001b31' : 'white', borderRadius: 100, marginRight: 15}}></span>}
+                            <ListItemText primary={e.label} />
                         </ListItem>
-                        <ListItem >
-                            <ListItemText primary={'Add new moment'} />
-                        </ListItem>
+                        )}
                         </AccordionDetails>
                     </Accordion>
                 </List>
@@ -144,7 +148,7 @@ export default function PersistentDrawerLeft(props) {
 
                 <Switch>
                 {
-                    homeRoutes.map((e,i) => <Route exact key={e.path} path={`${props.match.path}${e.path}`} component={e.component} />)
+                    homeRoutes.map((route,i) => route.redirectTo ? <Redirect key={route.path} to={route.redirectTo}/> : <Route exact key={route.path} path={`${props.match.path}${route.path}`} component={route.component} />)
       
                 }
                 </Switch>
